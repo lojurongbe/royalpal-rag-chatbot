@@ -1,7 +1,18 @@
+import os
 import streamlit as st
-from ask import ask
 
 st.set_page_config(page_title="Royal Pal Assistant", page_icon="💼")
+
+if "OPENAI_API_KEY" in st.secrets:
+    os.environ["OPENAI_API_KEY"] = st.secrets["OPENAI_API_KEY"]
+
+if not os.path.exists("chroma_db"):
+    with st.spinner("Setting up knowledge base for the first time — this takes about a minute..."):
+        import subprocess
+        subprocess.run(["python", "chunk_documents.py"], check=True)
+        subprocess.run(["python", "build_vectorstore.py"], check=True)
+
+from ask import ask
 
 st.title("Royal Pal Professional Services — Assistant")
 st.caption("Ask a question about services, tax deadlines, or registration procedures.")
