@@ -1,4 +1,5 @@
 import os
+import sys
 import streamlit as st
 
 st.set_page_config(page_title="Royal Pal Assistant", page_icon="💼")
@@ -9,8 +10,8 @@ if "OPENAI_API_KEY" in st.secrets:
 if not os.path.exists("chroma_db"):
     with st.spinner("Setting up knowledge base for the first time — this takes about a minute..."):
         import subprocess
-        subprocess.run(["python", "chunk_documents.py"], check=True)
-        subprocess.run(["python", "build_vectorstore.py"], check=True)
+        subprocess.run([sys.executable, "chunk_documents.py"], check=True)
+        subprocess.run([sys.executable, "build_vectorstore.py"], check=True)
 
 from ask import ask
 
