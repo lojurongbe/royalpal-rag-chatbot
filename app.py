@@ -24,18 +24,21 @@ if "messages" not in st.session_state:
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
+        if message["role"] == "assistant" and message.get("sources"):
+            st.caption(f"Based on: {message['sources']}")
 
 question = st.chat_input("Ask a question...")
 
 if question:
-    st.session_state.messages.append({"role": "user", "content": question})
+    st.session_state.messages.append({"role": "user", "content": question, "sources": None})
     with st.chat_message("user"):
         st.markdown(question)
 
     with st.chat_message("assistant"):
         with st.spinner("Thinking..."):
             answer, sources = ask(question)
-            full_response = f"{answer}\n\n*Sources: {', '.join(set(sources))}*"
-            st.markdown(full_response)
+            source_line = ", ".join(sorted(set(sources)))
+            st.markdown(answer)
+            st.caption(f"Based on: {source_line}")
 
-    st.session_state.messages.append({"role": "assistant", "content": full_response})
+    st.session_state.messages.append({"role": "assistant", "content": answer, "sources": source_line})
