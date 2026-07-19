@@ -11,6 +11,23 @@ EMBEDDING_MODEL = "text-embedding-3-small"
 CHAT_MODEL = "gpt-4o-mini"
 TOP_K = 3
 
+# Maps raw filenames to clean, client-facing labels.
+# Add a new line here any time you add a new source document.
+FRIENDLY_SOURCE_NAMES = {
+    "RoyalPal_Procedures_Guidelines.docx": "Service Procedures & Guidelines",
+    "RoyalPal_Tax_Deadlines_QuickReference.docx": "Tax Deadlines Reference",
+    "RoyalPal_New_Business_Registration_Checklist.docx": "Business Registration Guide",
+}
+
+def friendly_source_name(filename):
+    """Look up a clean display name; fall back to a cleaned-up version of the filename
+    if it's a new document that hasn't been added to the mapping yet."""
+    if filename in FRIENDLY_SOURCE_NAMES:
+        return FRIENDLY_SOURCE_NAMES[filename]
+    name = filename.replace(".docx", "").replace("RoyalPal_", "")
+    name = name.replace("_", " ").strip()
+    return name.title()
+
 client = OpenAI()
 chroma_client = chromadb.PersistentClient(path=DB_FOLDER)
 collection = chroma_client.get_collection(COLLECTION_NAME)
@@ -29,7 +46,7 @@ def retrieve_chunks(question, top_k=TOP_K):
         n_results=top_k
     )
     documents = results["documents"][0]
-    sources = [meta["source"] for meta in results["metadatas"][0]]
+    sources = [friendly_source_name(meta["source"]) for meta in results["metadatas"][0]]
     return documents, sources
 
 def build_prompt(question, chunks):
@@ -70,7 +87,7 @@ def main():
 
         answer, sources = ask(question)
         print(f"\nAnswer: {answer}")
-        print(f"\n(Sources: {', '.join(set(sources))})\n")
+        print(f"\n(Based on: {', '.join(set(sources))})\n")
 
 if __name__ == "__main__":
     main()
